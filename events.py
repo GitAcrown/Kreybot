@@ -46,8 +46,8 @@ class Events:
             msg += "Aucun ramassage en cours"
         await self.bot.say(msg)
 
-    @commands.command()
-    async def now(self):
+    @commands.command(pass_context=True)
+    async def now(self, ctx):
         """Affiche des informations sur l'Event du moment."""
         await self.bot.whisper("**En ce moment:** *Event Halloween !*")
         await asyncio.sleep(1)
