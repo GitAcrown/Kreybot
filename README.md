@@ -9,6 +9,7 @@ Bot discord, basé sur Red.
 [<img src="https://discordapp.com/api/guilds/222012820298924032/widget.png?style=shield">](https://discord.gg/veqrFX8)   
 
 -----------------------------------------------------------
+#### Procédure
 
 Pour obtenir le fichier en local utilisez 
 `git clone -b master --single-branch https://github.com/GitAcrown/Kreybot.git Kreybot`
