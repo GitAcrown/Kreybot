@@ -168,6 +168,7 @@ class Mine:
                         else:
                             self.inv[author.id][minerai[0]]["QUANTITE"] += quant
                             fileIO("data/mine/inv.json", "save", self.inv)
+                            await self.bot.whisper("Ajout de : {}.".format(minerai[0]))
                         self.reset()
                     else:
                         await self.bot.say("Quelqu'un est en train de miner !")
@@ -215,11 +216,14 @@ class Mine:
         if author.id in self.inv:
             if bank.account_exists(author):
                 for item in self.inv[author.id]:
-                    vente = self.inv[author.id][item]["PUNITE"] * self.inv[author.id][item]["QUANTITE"]
-                    before = self.inv[author.id][item]["QUANTITE"]
-                    self.inv[author.id][item]["QUANTITE"] = 0
-                    bank.deposit_credits(author, vente)
-                    msg += "Vous venez de vendre {} **{}**. Vous obtenez donc {}§\n".format(before, item, vente)
+                    if self.inv[author.id][item]["QUANTITE"] > 0:
+                        vente = self.inv[author.id][item]["PUNITE"] * self.inv[author.id][item]["QUANTITE"]
+                        before = self.inv[author.id][item]["QUANTITE"]
+                        self.inv[author.id][item]["QUANTITE"] = 0
+                        bank.deposit_credits(author, vente)
+                        msg += "Vous venez de vendre {} **{}**. Vous obtenez donc {}§\n".format(before, item, vente)
+                    else:
+                        pass
                 else:
                     fileIO("data/mine/inv.json", "save", self.inv)
                     await self.bot.say(msg)
