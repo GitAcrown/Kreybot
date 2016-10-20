@@ -14,7 +14,7 @@ dispo = ["Réglisse","Caramel","Pâte de fruit","Dragée","Nougat","Sucette",
 default = {"EVENTCHAN" : None, "RAMASSEUR" : None, "SPAWNED": None, "COMPTEUR" : 0, "MINIMUM" : 150, "MAXIMUM" : 350, "LIMITE" : 225}
 
 class Events:
-    """Module d'events occasionnels"""
+    """Module d'events occasionnels. (Nécéssite 'Mine' pour fonctionner)"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -46,8 +46,8 @@ class Events:
             msg += "Aucun ramassage en cours"
         await self.bot.say(msg)
 
-    @commands.command()
-    async def now(self):
+    @commands.command(pass_context=True)
+    async def now(self, ctx):
         """Affiche des informations sur l'Event du moment."""
         await self.bot.whisper("**En ce moment:** *Event Halloween !*")
         await asyncio.sleep(1)
@@ -76,6 +76,23 @@ class Events:
         self.reset()
         await self.bot.say("Module reset.")
 
+    @eventset.command(aliases = ["end"], hidden=True, pass_context=True, no_pm=True)
+    @checks.admin_or_permissions(kick_members=True)
+    async def end_event(self, ctx):
+        """Permet de terminer l'évenement. (1er Novembre)"""
+        self.reset()
+        msgend = "**__Voici les gagnants de cet Event Halloween :__**\n"
+        for user in self.player:
+            if set(self.player[user]) == set(dispo):
+                msgend += "**{}**\n"
+            else:
+                pass
+        else:
+            msgend += "\n"
+            msgend += "Bravo à eux !\n"
+            msgend += "*Consultez l'administration du serveur pour avoir votre récompense* !"
+            await self.bot.say(msgend)
+                
     @eventset.command(pass_context=True, no_pm=True)
     @checks.admin_or_permissions(kick_members=True)
     async def minimum(self, ctx, val):
@@ -143,6 +160,31 @@ class Events:
             await self.bot.say("Vous n'avez rien ! *(Je viens juste de vous enregistrer en fait)*")
 
     @event.command(pass_context=True)
+    async def don(self, ctx, user: discord.Member, item: str):
+        """Permet de donner un bonbon à un membre enregistré."""
+        author = ctx.message.author
+        item = item.title()
+        if item == "Reglisse":
+            item = "Réglisse"
+        if item == "Pate de fruit":
+            item = "Pâte de fruit"
+        if item == "Dragee":
+            item = "Dragée"
+        if author.id in self.player:
+            if user.id in self.player:
+                if item in self.player[author.id]:
+                    if self.player[author.id][item]["QT"] > 0:
+                        self.player[author.id][item]["QT"] -= 1
+                        if item not in self.player[user.id]:
+                            self.player[user.id][item] = {"NOM" : item, "QT" : 1}
+                            fileIO("data/events/player.json", "save", self.player)
+                            await self.bot.send_message(user, "J'ai rajouté ce bonbon à votre inventaire provenant de {}: {}.".format(author.name, item))
+                        else:
+                            self.player[user.id][item]["QT"] += 1
+                            fileIO("data/events/player.json", "save", self.player)
+                            await self.bot.send_message(user, "Nouvel exemplaire de {} provenant de {}.".format(item, author.name))
+
+    @event.command(pass_context=True)
     async def eat(self, ctx, item: str):
         """Permet de manger un bonbon. Ne l'enlève pas de votre 'palmares'."""
         item = item.title()
@@ -167,6 +209,7 @@ class Events:
                                 await self.bot.add_roles(author, r)
                                 await self.bot.say("Oh non {}, le caramel t'a rendu Nègre ! (5m)".format(author.mention))
                                 await asyncio.sleep(300)
+                                await self.bot.remove_roles(author, r)
                                 await self.bot.whisper("Les effets du caramel se sont dissipés...")
                         if item == "Doliprane":
                             r = discord.utils.get(ctx.message.server.roles, name="Cancéreux")
@@ -181,6 +224,7 @@ class Events:
                                 await self.bot.add_roles(author, r)
                                 await self.bot.say("{} Tu as soudainement envie de parler de ta vie de merde... Oh non, la Tagada t'a rendu Attention Whore ! (5m)".format(author.mention))
                                 await asyncio.sleep(300)
+                                await self.bot.remove_roles(author, r)
                                 await self.bot.whisper("Les effets de la tagada se sont dissipés...")
                         if item == "Calisson":
                             r = discord.utils.get(ctx.message.server.roles, name="Jaquette")
@@ -188,6 +232,7 @@ class Events:
                                 await self.bot.add_roles(author, r)
                                 await self.bot.say("{} Des arcs-en ciel apparaissent au loin... Non ce n'est pas le GHB, c'est le Calisson qui t'a rendu Jaquette ! (5m)".format(author.mention))
                                 await asyncio.sleep(300)
+                                await self.bot.remove_roles(author, r)
                                 await self.bot.whisper("Les effets du calisson se sont dissipés...")
                         if item == "Pastille":
                             r = discord.utils.get(ctx.message.server.roles, name="Prison")
@@ -196,6 +241,7 @@ class Events:
                                 await self.bot.say("Il semble que la pastille de {} n'était pas du sucre, mais bien de la drogue illégale ! Hop, en prison ! (30s)".format(author.mention))
                                 await self.bot.whisper("30 secondes de prison suffiront...")
                                 await asyncio.sleep(30)
+                                await self.bot.remove_roles(author, r)
                                 await self.bot.whisper("Les effets de la pastille se sont dissipés...")
                         else:
                             await self.bot.say("Mh, il n'était plus très bon...")
