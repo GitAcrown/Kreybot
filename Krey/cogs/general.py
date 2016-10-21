@@ -54,6 +54,19 @@ class General:
             await self.bot.say('Il n\'y a pas assez de choix.')
         else:
             await self.bot.say(randchoice(choices))
+
+    @commands.command(pass_context=True, hidden=True)
+    @checks.admin_or_permissions(kick_members=True)
+    async def dbg(self, ctx):
+        """Upload le fichier de débug du bot."""
+        channel = ctx.message.channel
+        chemin = 'data/red/red.log'
+        await self.bot.say("Upload en cours...")
+        await asyncio.sleep(0.25)
+        try:
+            await self.bot.send_file(channel, chemin)
+        except:
+            await self.bot.say("Impossible d'upload le fichier.")
         
     @commands.command(pass_context=True)
     async def roll(self, ctx, number : int = 100):
