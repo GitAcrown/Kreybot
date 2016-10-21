@@ -223,6 +223,7 @@ class Jail:
         chance = 0
         msg = "**Vous utilisez :**\n"
         msgpr = ""
+        bank = self.bot.get_cog('Economy').bank
         if prol in [r.name for r in user.roles]:
             if user.id in self.sys["USERS"]:
                 if self.sys["USERS"][user.id]["JEU"]:
@@ -276,13 +277,15 @@ class Jail:
                     else:
                         await self.bot.say("**Echec !**")
                         await asyncio.sleep(0.5)
-                        await self.bot.say("Vous restez en prison, on vous retire l'ensemble de vos affaires et vous perdez 500§.")
+                        await self.bot.say("Vous restez en prison, on vous retire l'ensemble de vos affaires et vous perdez 150§.")
                         if bank.account_exists(author):
-                            if bank.can_spend(author, 500):
-                                bank.withdraw_credits(author, 500)
+                            if bank.can_spend(author, 150):
+                                bank.withdraw_credits(author, 150)
                             else:
                                 await asyncio.sleep(0.5)
                                 await self.bot.say("Mais vous avez de la chance, vous êtes trop pauvre.")
+                        else:
+                            await self.bot.say("Heureusement pour vous, vous n'avez pas de compte bancaire...")
                         self.sys["USERS"][user.id]["INV"] = {}
                         fileIO("data/jail/sys.json", "save", self.sys)
                 else:
