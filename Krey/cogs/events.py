@@ -200,6 +200,7 @@ class Events:
         if item == "Dragee":
             item = "Dragée"
         author = ctx.message.author
+        user = author
         if author.id in self.player:
             if item in self.player[author.id]:
                 if self.player[author.id][item]["QT"] >= 1:
