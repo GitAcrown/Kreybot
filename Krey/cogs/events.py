@@ -8,7 +8,7 @@ import random
 import asyncio
 import os
 
-dispo = ["Réglisse","Caramel","Pâte de fruit","Dragée","Nougat","Sucette",
+dispo = ["Réglisse","Caramel","Marshmallow","Dragée","Nougat","Sucette",
          "Calisson","Guimauve","Tagada","Berlingot","Praline","Pastille","Doliprane"]
 
 default = {"EVENTCHAN" : None, "RAMASSEUR" : None, "SPAWNED": None, "COMPTEUR" : 0, "MINIMUM" : 150, "MAXIMUM" : 350, "LIMITE" : 225}
@@ -76,6 +76,13 @@ class Events:
         self.reset()
         await self.bot.say("Module reset.")
 
+    @eventset.command(hidden=True, pass_context=True)
+    @checks.admin_or_permissions(kick_members=True)
+    async def wipedata(self, ctx):
+        """Supprime tout les inventaires"""
+        self.player = {}
+        await self.bot.say("Voilà que c'est fait.")
+
     @eventset.command(aliases = ["end"], hidden=True, pass_context=True, no_pm=True)
     @checks.admin_or_permissions(kick_members=True)
     async def end_event(self, ctx):
@@ -135,7 +142,7 @@ class Events:
         """Affiche les bonbons pouvant apparaître."""
         msg = "**__Voici les bonbons disponibles que vous devez collectionner:**__\n"
         for item in dispo:
-            msg += "{}\n".format(item[0])
+            msg += "{}\n".format(item)
         else:
             await self.bot.whisper(msg)
 
@@ -159,15 +166,13 @@ class Events:
             fileIO("data/events/player.json", "save", self.player)
             await self.bot.say("Vous n'avez rien ! *(Je viens juste de vous enregistrer en fait)*")
 
-    @event.command(pass_context=True)
+    @event.command(pass_context=True, hidden=True)
     async def don(self, ctx, user: discord.Member, item: str):
         """Permet de donner un bonbon à un membre enregistré."""
         author = ctx.message.author
         item = item.title()
         if item == "Reglisse":
             item = "Réglisse"
-        if item == "Pate de fruit":
-            item = "Pâte de fruit"
         if item == "Dragee":
             item = "Dragée"
         if author.id in self.player:
@@ -185,7 +190,7 @@ class Events:
                             await self.bot.send_message(user, "Nouvel exemplaire de {} provenant de {}.".format(item, author.name))
 
     @event.command(pass_context=True)
-    async def eat(self, ctx, item: str):
+    async def eat(self, ctx, *item):
         """Permet de manger un bonbon. Ne l'enlève pas de votre 'palmares'."""
         item = item.title()
         if item == "Reglisse":
@@ -312,7 +317,7 @@ class Events:
                 channel = self.bot.get_channel(eventchan) #On obtient le channel lié à l'ID 
                 bonbon = random.choice(dispo) #On génère un bonbon
                 self.system["SPAWNED"] = bonbon #On met le bonbon dans la mémoire
-                await self.bot.send_message(channel, "==================================================\n**{}** vient d'apparaitre ! Ramassez-le avec [p]event pick ([p]evp) !\n==================================================".format(bonbon)) #On fait spawner le bonbon généré (en msg)
+                await self.bot.send_message(channel, "==============================================\n**{}** vient d'apparaitre ! Ramassez-le avec [p]event pick ([p]evp) !\n==============================================".format(bonbon)) #On fait spawner le bonbon généré (en msg)
                 fileIO("data/events/system.json", "save", self.system)
             else:
                 pass
