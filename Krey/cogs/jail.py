@@ -20,6 +20,7 @@ class Jail:
                          ["Vous tentez de faire croire à votre mort (-20%)", 20],
                          ["Vous tentez d'aller à l'infirmerie en vous enfonçant une savonette dans l'anus (-10%)", 10],
                          ["Vous essayez de fuir par les aérations des douches (-15%)", 15],
+                         ["Vous arrivez à voler une tenue sale d'un gardien (-5%)", 5],
                          ["Vous tentez de fuir avec un complice garde dans la prison (-5%)", 5]] #Rajouter si désiré. Format : ["Message (-x%)", malus],
 
     @commands.group(pass_context=True)
@@ -220,7 +221,7 @@ class Jail:
         r = discord.utils.get(ctx.message.server.roles, name=prol)
         user = ctx.message.author
         server = ctx.message.server
-        chance = 0
+        chance = 10
         msg = "**Vous utilisez :**\n"
         msgpr = ""
         bank = self.bot.get_cog('Economy').bank
