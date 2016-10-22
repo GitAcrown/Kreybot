@@ -213,6 +213,7 @@ class Mine:
         author = ctx.message.author
         bank = self.bot.get_cog('Economy').bank
         msg = "__**Voici vos ventes :**__\n"
+        total = 0
         if author.id in self.inv:
             if bank.account_exists(author):
                 for item in self.inv[author.id]:
@@ -222,9 +223,11 @@ class Mine:
                         self.inv[author.id][item]["QUANTITE"] = 0
                         bank.deposit_credits(author, vente)
                         msg += "Vous venez de vendre {} **{}**. Vous obtenez donc {}§\n".format(before, item, vente)
+                        total += vente
                     else:
                         pass
                 else:
+                    msg += "*Total:* {}§".format(total)
                     fileIO("data/mine/inv.json", "save", self.inv)
                     await self.bot.say(msg)
             else:
