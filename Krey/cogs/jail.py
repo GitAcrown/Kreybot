@@ -107,21 +107,24 @@ class Jail:
                 await self.bot.say("**{}** est maintenant en prison pour {} minute(s). (+1 Karma)".format(user.name, temps))
                 self.regis[user.id]["Karma"] += 1
                 await self.bot.send_message(user, "Tu es maintenant en prison pour {} minute(s). Si tu as une réclamation à faire, va sur le canal *prison* du serveur ou contacte un modérateur.".format(temps))
+                await self.bot.server_voice_state(user, mute=True)
                 # ^ Mise en prison
                 await asyncio.sleep(minutes)
                 # v Sortie de prison
                 if prol in [r.name for r in user.roles]:
                     await self.bot.remove_roles(user, r)
+                    await self.bot.server_voice_state(user, mute=False)
                     await self.bot.say("**{}** à été libéré de la prison.".format(user.name))
                     await self.bot.send_message(user, "Tu es libéré de la prison.")
                 else:
                     pass
             else:
                 await self.bot.remove_roles(user, r)
+                await self.bot.server_voice_state(user, mute=False)
                 await self.bot.say("**{}** à été libéré de la prison plus tôt que prévu.".format(user.name))
                 await self.bot.send_message(user, "Tu a été libéré de la prison.")
         else:
-            await self.bot;say("Le minimum est de une minute.")
+            await self.bot.say("Le minimum est de une minute.")
 
     @jail.command(pass_context=True)
     @checks.mod_or_permissions(ban_members=True)
