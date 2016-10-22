@@ -162,14 +162,18 @@ class General:
         msg = " ".join(msg)
         rep = str(cb.ask(msg))
         if "Ãª" in rep:
-            rep.replace("Ãª","ê")
+            rep = rep.replace("Ãª","ê")
         if "Ã©" in rep:
-            rep.replace("Ã©","é")
+            rep = rep.replace("Ã©","é")
         if "Ã»" in rep:
-            rep.replace("Ã»","û")
+            rep = rep.replace("Ã»","û")
+        if "Ã«" in rep:
+            rep = rep.replace("Ã«","ë")
         if "Ã¨" in rep:
-            rep.replace("Ã¨","è")
-        self.bot.send_typing(ctx.message.channel)
+            rep = rep.replace("Ã¨","è")
+        if "Ã§" in rep:
+            rep = rep.replace("Ã§","ç")
+        await self.bot.send_typing(ctx.message.channel)
         await self.bot.say(rep)
 
     @commands.command(aliases=["sw"], pass_context=True)
@@ -331,9 +335,9 @@ class General:
                 self.poll_sessions.append(p)
                 await p.start()
             else:
-                await self.bot.say("poll question;option1;option2 (...)")
+                await self.bot.say("*poll question;option1;option2 (...)*")
         else:
-            await self.bot.say("Un poll est déjà en execution.")
+            await self.bot.say("Un poll est déjà en cours.")
 
     async def endpoll(self, message):
         if self.getPollByChannel(message):
