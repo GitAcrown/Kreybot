@@ -190,13 +190,11 @@ class Events:
                             await self.bot.send_message(user, "Nouvel exemplaire de {} provenant de {}.".format(item, author.name))
 
     @event.command(pass_context=True)
-    async def eat(self, ctx, *item):
+    async def eat(self, ctx, item: str):
         """Permet de manger un bonbon. Ne l'enlève pas de votre 'palmares'."""
         item = item.title()
         if item == "Reglisse":
             item = "Réglisse"
-        if item == "Pate de fruit":
-            item = "Pâte de fruit"
         if item == "Dragee":
             item = "Dragée"
         author = ctx.message.author
