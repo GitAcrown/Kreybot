@@ -282,9 +282,9 @@ class Jail:
                         await self.bot.say("**Echec !**")
                         await asyncio.sleep(0.5)
                         await self.bot.say("Vous restez en prison, on vous retire l'ensemble de vos affaires et vous perdez 150§.")
-                        if bank.account_exists(author):
-                            if bank.can_spend(author, 150):
-                                bank.withdraw_credits(author, 150)
+                        if bank.account_exists(user):
+                            if bank.can_spend(user, 150):
+                                bank.withdraw_credits(user, 150)
                             else:
                                 await asyncio.sleep(0.5)
                                 await self.bot.say("Mais vous avez de la chance, vous êtes trop pauvre.")
