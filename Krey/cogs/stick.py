@@ -97,8 +97,8 @@ class Stock:
         else:
             await self.bot.say("Cette catégorie n'existe pas. Utilisez [p]catadd pour l'ajouter.")
         
-    @imgset.command(pass_context=True, no_pm=True)
-    async def add(self, ctx, nom, cat, url):
+    @imgset.command(name = "add", pass_context=True, no_pm=True)
+    async def s_add(self, ctx, nom, cat, url):
         """Ajoute une image à la base de données.
 
         Vous pouvez créer des catégories avec [p]img cat"""
@@ -136,8 +136,8 @@ class Stock:
             else:
                 await self.bot.whisper(msg)
 
-    @imgset.command(pass_context=True, no_pm=True)
-    async def edit(self, ctx, nom, cat, url : str = None):
+    @imgset.command(name = "edit", pass_context=True, no_pm=True)
+    async def s_edit(self, ctx, nom, cat, url : str = None):
         """Permet d'éditer les données liés à une image. (Catégorie et URL)
 
         Si aucune URL n'est spécifiée, l'URL originale est conservée."""
@@ -162,9 +162,9 @@ class Stock:
             else:
                 await self.bot.whisper(msg)
 
-    @imgset.command(pass_context=True, no_pm=True)
+    @imgset.command(name = "delete", pass_context=True, no_pm=True)
     @checks.mod_or_permissions(kick_members=True)
-    async def delete(self, ctx, nom):
+    async def s_delete(self, ctx, nom):
         """Supprime une image de la base de données."""
         if nom in self.img["IMG"]:
             chemin = self.img["IMG"][nom]["CHEMIN"]
@@ -180,8 +180,8 @@ class Stock:
         else:
             await self.bot.say("Cette image n'existe pas.")
 
-    @imgset.command(pass_context=True)
-    async def list(self, ctx, cat: str = None):
+    @imgset.command(name = "list", pass_context=True)
+    async def s_list(self, ctx, cat: str = None):
         """Liste les images présentes dans la base de données.
 
         La liste peut être triée par catégorie si spécifiée."""
@@ -304,8 +304,8 @@ class Stock:
             msg += str(file[:-4]) + "\n"
         await self.bot.say(msg + "\n" + "*Utilisez '[p]memeset preview' pour prévisualiser un template*")
 
-    @memeset.command(pass_context=True)
-    async def list(self, ctx):
+    @memeset.command(name = "list", pass_context=True)
+    async def m_list(self, ctx):
         """Liste les memes disponibles."""
         msg = ""
         for meme in self.meme:
@@ -326,8 +326,8 @@ class Stock:
                 print("Erreur, impossible d'upload l'image : {}".format(e))
                 await self.bot.say("Désolé, mais cette image ne peut pas être upload.")
 
-    @memeset.command(pass_context=True)
-    async def add(self, ctx, nom, url):
+    @memeset.command(name = "add", pass_context=True)
+    async def m_add(self, ctx, nom, url):
         """Ajoute une image aux templates disponibles.
 
         - Une conversion en '.jpg' sera réalisée automatiquement.
@@ -357,9 +357,9 @@ class Stock:
         else:
             await self.bot.say("Image déjà chargée.")
 
-    @memeset.command(pass_context=True)
+    @memeset.command(name = "delete", pass_context=True)
     @checks.mod_or_permissions(kick_members=True)
-    async def delete(self, ctx, nom):
+    async def m_delete(self, ctx, nom):
         """Supprime un template de la base de données."""
         fichier = memedir + nom + ".jpg"
         if os.path.exists(fichier):
