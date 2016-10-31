@@ -88,7 +88,7 @@ class Events:
     async def end_event(self, ctx):
         """Permet de terminer l'évenement. (1er Novembre)"""
         server = ctx.message.server
-        msgend = "**__Voici les gagnants de cet Event Halloween :__**\n"
+        msgend = "**__Voici les participants de cet Event Halloween :__**\n"
         for userid in self.player:
             manque = set(dispo) - set(self.player[userid])
             manque = len(manque)
