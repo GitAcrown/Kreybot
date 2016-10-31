@@ -87,17 +87,17 @@ class Events:
     @checks.admin_or_permissions(kick_members=True)
     async def end_event(self, ctx):
         """Permet de terminer l'évenement. (1er Novembre)"""
-        self.reset()
+        server = ctx.message.server
         msgend = "**__Voici les gagnants de cet Event Halloween :__**\n"
-        for user in self.player:
-            if set(self.player[user]) == set(dispo):
-                msgend += "**{}**\n"
-            else:
-                pass
+        for userid in self.player:
+            manque = set(dispo) - set(self.player[userid])
+            manque = len(manque)
+            user = server.get_member(userid)
+            msgend += "**{}** - *{}*\n".format(user.name, manque)
         else:
             msgend += "\n"
-            msgend += "Bravo à eux !\n"
-            msgend += "*Consultez l'administration du serveur pour avoir votre récompense* !"
+            msgend += "C'est le nombre de bonbons manquant à chaque personne dans son palmarès !\n"
+            msgend += "C'est donc la personne ayant le plus petit chiffre qui emporte l'event ! Bravo à lui !"
             await self.bot.say(msgend)
                 
     @eventset.command(pass_context=True, no_pm=True)
@@ -190,11 +190,13 @@ class Events:
                             await self.bot.send_message(user, "Nouvel exemplaire de {} provenant de {}.".format(item, author.name))
 
     @event.command(pass_context=True)
-    async def eat(self, ctx, item: str):
+    async def eat(self, ctx, *item):
         """Permet de manger un bonbon. Ne l'enlève pas de votre 'palmares'."""
         item = item.title()
         if item == "Reglisse":
             item = "Réglisse"
+        if item == "Pate de fruit":
+            item = "Pâte de fruit"
         if item == "Dragee":
             item = "Dragée"
         author = ctx.message.author
