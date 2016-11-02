@@ -78,7 +78,7 @@ class Tools:
         server = ctx.message.server
         self.settings[server.id]["join_message"] = format_str
         dataIO.save_json(self.settings_path, self.settings)
-        await self.bot.reply(cf.info("Message réglé."))
+        await self.bot.say("Message réglé.")
 
     @_membershipset.command(pass_context=True, no_pm=True, name="leave",aliases=["adieu"])
     async def _leave(self, ctx: commands.Context, *,
@@ -91,7 +91,7 @@ class Tools:
         server = ctx.message.server
         self.settings[server.id]["leave_message"] = format_str
         dataIO.save_json(self.settings_path, self.settings)
-        await self.bot.reply(cf.info("Message réglé."))
+        await self.bot.say("Message reglé.")
 
     @_membershipset.command(pass_context=True, no_pm=True, name="ban")
     async def _ban(self, ctx: commands.Context, *, format_str: str):
@@ -103,7 +103,7 @@ class Tools:
         server = ctx.message.server
         self.settings[server.id]["ban_message"] = format_str
         dataIO.save_json(self.settings_path, self.settings)
-        await self.bot.reply(cf.info("Message reglé."))
+        await self.bot.say("Message reglé.")
 
     @_membershipset.command(pass_context=True, no_pm=True, name="unban")
     async def _unban(self, ctx: commands.Context, *, format_str: str):
@@ -115,7 +115,7 @@ class Tools:
         server = ctx.message.server
         self.settings[server.id]["unban_message"] = format_str
         dataIO.save_json(self.settings_path, self.settings)
-        await self.bot.reply(cf.info("Message réglé."))
+        await self.bot.say("Message reglé.")
 
     @_membershipset.command(pass_context=True, no_pm=True, name="toggle")
     async def _toggle(self, ctx: commands.Context):
@@ -125,11 +125,9 @@ class Tools:
         server = ctx.message.server
         self.settings[server.id]["on"] = not self.settings[server.id]["on"]
         if self.settings[server.id]["on"]:
-            await self.bot.reply(
-                cf.info("Les events du trigger seront annoncés."))
+            await self.bot.say("Les events du trigger seront annoncés.")
         else:
-            await self.bot.reply(
-                cf.info("Les events du trigger ne seront plus annoncés."))
+            await self.bot.say("Les events du trigger ne seront plus annoncés.")
         dataIO.save_json(self.settings_path, self.settings)
 
     @_membershipset.command(pass_context=True, no_pm=True, name="channel")
@@ -146,20 +144,14 @@ class Tools:
             channel = server.default_channel
 
         if not self.speak_permissions(server, channel):
-            await self.bot.reply(
-                "Je n'ai pas les permissions d'envoyer de message sur {0.mention}."
-                .format(channel))
+            await self.bot.say(
+                "Je n'ai pas les permissions d'envoyer de message sur {0.mention}.".format(channel))
             return
 
         self.settings[server.id]["channel"] = channel.id
         dataIO.save_json(self.settings_path, self.settings)
         channel = self.get_welcome_channel(server)
-        await self.bot.send_message(channel,
-                                    ("{0.mention}, " +
-                                     cf.info(
-                                         "Je vais maintenant envoyer les messages d'annonce"
-                                         "sur {1.mention}."))
-                                    .format(ctx.message.author, channel))
+        await self.bot.send_message(channel,"{0.mention}, " + "Je vais maintenant envoyer les messages d'annonce" + "sur {1.mention}.".format(ctx.message.author, channel))
 
     async def member_join(self, member: discord.Member):
         server = member.server
