@@ -132,6 +132,37 @@ class Jail:
         else:
             await self.bot.say("Le minimum est de une minute.")
 
+    
+    @commands.command(name = "pv", pass_context=True, no_pm=True)
+    @checks.mod_or_permissions(kick_members=True)
+    async def jail_visite(self, ctx, user: discord.Member):
+        """Met un utilisateur en prison pendant 5 minutes sans pénalités.
+
+        Pour le sortir plus tôt de prison il suffit d'utiliser la commande classique."""
+        server = ctx.message.server
+        temps = 5
+        prol = self.sys["ROLE"]
+        if user.id == self.bot.user.id:
+            await self.bot.say("Un robot doit protéger son existence tant que cette protection n'entre pas en conflit avec la première ou la deuxième loi d'Asimov. Or, si j'execute votre ordre, vous serez exposé au danger... C'est évident.")
+        r = discord.utils.get(ctx.message.server.roles, name=prol)
+        minutes = temps * 60 #On veut un temps en minutes
+        if prol not in [r.name for r in user.roles]:
+            await self.bot.add_roles(user, r)
+            notif = "Aucune pénalité de Karma"
+            await self.bot.say("**{}** visite la prison pendant {} minute(s). {}".format(user.name, temps, notif))
+            await self.bot.send_message(user, "Tu es maintenant en prison pour {} minute(s) dans le cadre d'une visite. Cette visite ne rajoute pas de points de Karma.".format(temps))
+            # ^ Mise en prison
+            await asyncio.sleep(minutes)
+            # v Sortie de prison
+            if prol in [r.name for r in user.roles]:
+                await self.bot.remove_roles(user, r)
+                await self.bot.say("**{}** à été libéré de la prison [VISITE].".format(user.name))
+                await self.bot.send_message(user, "Tu es libéré de la prison [VISITE].")
+            else:
+                pass
+        else:
+            await self.bot.say("Utilisez la commande classique de prison pour libérer quelqu'un.")
+
     @jail.command(pass_context=True)
     @checks.mod_or_permissions(ban_members=True)
     async def clean(self, ctx):
