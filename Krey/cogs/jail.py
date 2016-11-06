@@ -12,7 +12,7 @@ class Jail:
 
     def __init__(self, bot):
         self.bot = bot
-        self.regis = dataIO.load_json("data/jail/regis.json")
+        self.prfl = dataIO.load_json("data/puser/prfl.json")
         self.sys = dataIO.load_json("data/jail/sys.json")
         self.scenario = [["Vous tentez de scier les barreaux avec un couteau récupéré à la cantine. (-10%)", 10],
                          ["Vous essayez de creuser le mur fissuré avec une cuillère. (-15%)", 15],
@@ -80,18 +80,19 @@ class Jail:
         else:
             await self.bot.say("Le rôle *{}* est déjà prévu à cet effet !".format(self.sys["ROLE"]))
 
-    @commands.command(aliases = ["p"], pass_context=True, no_pm=True)
+    @commands.command(name = "p", pass_context=True, no_pm=True)
     @checks.mod_or_permissions(ban_members=True)
-    async def goto(self, ctx, user: discord.Member, temps: int= 5, jeu: bool = True):
+    async def jail_add(self, ctx, user: discord.Member, temps: int= 5, jeu: bool = True):
         """Met un utilisateur en prison pendant x minutes en lui permettant ou non de participer au jeu.
         Si l'utilisateur est en prison, il en sera sorti en refaisant la commande.
 
-        Par défaut : Autorisé à jouer / 5 minutes."""
+        Par défaut : Autorisé à jouer / 5 minutes.
+        Ajoute 1 de Karma."""
         server = ctx.message.server
         prol = self.sys["ROLE"]
-        if user.id not in self.regis:
-            self.regis[user.id] = {"Pseudo": user.name, "Karma": 0}
-            fileIO("data/jail/regis.json", "save", self.regis)
+        if user.id not in self.prfl:
+            self.prfl[user.id] = {"KARMA" : 0, "NBMSG" : 0, "ID_LIE" : [], "PSEUDO_LIE" : [], "DMSG" : None, "DMSGT" : None, "NOTE" : None}
+            fileIO("data/puser/prfl.json", "save", self.prfl)
         if user.id not in self.sys["USERS"]:
             self.sys["USERS"][user.id] = {"NOM" : user.name, "INV" : {}, "JEU" : jeu}
             fileIO("data/jail/sys.json", "save", self.sys)
@@ -101,11 +102,16 @@ class Jail:
         if temps >= 1:
             minutes = temps * 60 #On veut un temps en minutes
             if prol not in [r.name for r in user.roles]:
-                if self.regis[user.id]["Karma"] > 0:
-                    await self.bot.whisper("Cet utilisateur à déjà été mis en prison {} fois aujourd'hui. Je vous conseille une meilleure punition.".format(self.regis[user.id]["Karma"]))
+                if self.prfl[user.id]["KARMA"] > 0:
+                    await self.bot.whisper("Cet utilisateur possède déjà {}pts de Karma.".format(self.prfl[user.id]["Karma"]))
                 await self.bot.add_roles(user, r)
-                await self.bot.say("**{}** est maintenant en prison pour {} minute(s). (+1 Karma)".format(user.name, temps))
-                self.regis[user.id]["Karma"] += 1
+                if self.prfl[user.id]["KARMA"] < 10:
+                    self.prfl[user.id]["KARMA"] += 1
+                    fileIO("data/puser/prfl.json", "save", self.prfl)
+                    notif = "(+1 Karma)"
+                else:
+                    notif = "(Karma maximum)"
+                await self.bot.say("**{}** est maintenant en prison pour {} minute(s). {}".format(user.name, temps, notif))
                 await self.bot.send_message(user, "Tu es maintenant en prison pour {} minute(s). Si tu as une réclamation à faire, va sur le canal *prison* du serveur ou contacte un modérateur.".format(temps))
                 await self.bot.server_voice_state(user, mute=True)
                 # ^ Mise en prison
@@ -128,16 +134,18 @@ class Jail:
 
     @jail.command(pass_context=True)
     @checks.mod_or_permissions(ban_members=True)
-    async def clean(self, ctx, temps: int = 2):
+    async def clean(self, ctx):
         """Retire tout les prisonniers de la prison."""
         r = discord.utils.get(ctx.message.server.roles, name= self.sys["ROLE"])
         server = ctx.message.server
+        msg = "**Libérés:**\n"
         for user in server.members:
             if self.sys["ROLE"] in [r.name for r in user.roles]:
                 await self.bot.remove_roles(user, r)
-                await self.bot.send_message(user, "Tu as été libéré de prison.")
+                msg += "{}\n".format(user.name)
             else:
                 pass
+        await self.bot.say(msg)
         await self.bot.say("L'ensemble des prisonniers ont étés libérées.")
 
     #-------------- JEU ---------------------
@@ -283,9 +291,9 @@ class Jail:
                         await self.bot.say("**Echec !**")
                         await asyncio.sleep(0.5)
                         await self.bot.say("Vous restez en prison, on vous retire l'ensemble de vos affaires et vous perdez 150§.")
-                        if bank.account_exists(author):
-                            if bank.can_spend(author, 150):
-                                bank.withdraw_credits(author, 150)
+                        if bank.account_exists(user):
+                            if bank.can_spend(user, 150):
+                                bank.withdraw_credits(user, 150)
                             else:
                                 await asyncio.sleep(0.5)
                                 await self.bot.say("Mais vous avez de la chance, vous êtes trop pauvre.")
@@ -303,17 +311,6 @@ class Jail:
                 await self.bot.whisper("Vous êtes maintenant inscrit à ma base de données.")
         else:
             await self.bot.say("Vous n'êtes pas prisonnier !")
-
-    async def karma_update(self):
-        while self == self.bot.get_cog("Jail"):
-            for id in self.regis:
-                if self.regis[id]["Karma"] != 0:
-                    self.regis[id]["Karma"] = 0
-                else:
-                    pass
-            fileIO("data/jail/regis.json", "save", self.regis)
-            await asyncio.sleep(86400)  # La tâche recommence tout les 24h
-
         
 def check_folders():
     folders = ("data", "data/jail/")
@@ -336,4 +333,3 @@ def setup(bot):
     check_files()
     n = Jail(bot)
     bot.add_cog(n)
-    bot.loop.create_task(n.karma_update())

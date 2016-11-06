@@ -21,6 +21,7 @@ class Mod:
         self.filter = dataIO.load_json("data/mod/filter.json")
         self.past_names = dataIO.load_json("data/mod/past_names.json")
         self.past_nicknames = dataIO.load_json("data/mod/past_nicknames.json")
+        self.prfl = dataIO.load_json("data/puser/prfl.json")
 
     @commands.group(pass_context=True, no_pm=True)
     @checks.serverowner_or_permissions(administrator=True)
@@ -55,13 +56,20 @@ class Mod:
     @commands.command(no_pm=True, pass_context=True)
     @checks.admin_or_permissions(kick_members=True)
     async def kick(self, ctx, user: discord.Member):
-        """Kick un utilisateur."""
+        """Kick un utilisateur.
+
+        Ajoute 3 au karma."""
         author = ctx.message.author
         try:
             await self.bot.kick(user)
             logger.info("{}({}) à kické {}({})".format(
                 author.name, author.id, user.name, user.id))
-            await self.bot.say("Fait.")
+            if self.prfl[user.id]["KARMA"] < 8:
+                self.prfl[user.id]["KARMA"] += 3
+            elif self.prfl[user.id]["KARMA"] > 7:
+                self.prfl[user.id]["KARMA"] = 10
+            fileIO("data/puser/prfl.json", "save", self.prfl)
+            await self.bot.say("Fait. (+3 Karma)")
         except discord.errors.Forbidden:
             await self.bot.say("Je ne suis pas autorisé à faire ça.")
         except Exception as e:
@@ -72,7 +80,8 @@ class Mod:
     async def ban(self, ctx, user: discord.Member, days: int=1):
         """Ban un utilisateur et supprime x jours de messages.
 
-        Par défaut le dernier jour."""
+        Par défaut le dernier jour.
+        Ajoute 5 au karma."""
         author = ctx.message.author
         if days < 0 or days > 7:
             await self.bot.say("Les jours doivent être compris entre 0 et 7.")
@@ -81,7 +90,12 @@ class Mod:
             await self.bot.ban(user, days)
             logger.info("{}({}) banned {}({}), deleting {} days worth of messages".format(
                 author.name, author.id, user.name, user.id, str(days)))
-            await self.bot.say("Fait.")
+            if self.prfl[user.id]["KARMA"] < 6:
+                self.prfl[user.id]["KARMA"] += 5
+            elif self.prfl[user.id]["KARMA"] > 5:
+                self.prfl[user.id]["KARMA"] = 10
+            fileIO("data/puser/prfl.json", "save", self.prfl)
+            await self.bot.say("Fait. (+5 Karma)")
         except discord.errors.Forbidden:
             await self.bot.say("Je ne suis pas autorisé à le faire.")
         except Exception as e:
@@ -92,7 +106,8 @@ class Mod:
     async def neutral(self, ctx, user: discord.Member):
         """Renvoie l'utilisateur et efface un jour de message
 
-        Différent d'un ban ou d'un kick."""
+        Différent d'un ban ou d'un kick.
+        Ajoute 4 au karma."""
         server = ctx.message.server
         channel = ctx.message.channel
         can_ban = channel.permissions_for(server.me).ban_members
@@ -107,7 +122,12 @@ class Mod:
                 logger.info("{}({}) à neutralisé {}({}) ".format(author.name, author.id, user.name,
                      user.id))
                 await self.bot.unban(server, user)
-                await self.bot.say("Fait.")
+                if self.prfl[user.id]["KARMA"] < 7:
+                    self.prfl[user.id]["KARMA"] += 4
+                elif self.prfl[user.id]["KARMA"] > 6:
+                    self.prfl[user.id]["KARMA"] = 10
+                fileIO("data/puser/prfl.json", "save", self.prfl)
+                await self.bot.say("Fait. (+4 Karma)")
             except discord.errors.Forbidden:
                 await self.bot.say("Je n'ai pas le droit de faire ça.")
                 await self.bot.delete_message(msg)
