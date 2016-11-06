@@ -120,7 +120,7 @@ class Puser:
 
     @commands.command(aliases = ['km'], pass_context=True, no_pm=True)
     @checks.mod_or_permissions(ban_members=True)
-    async def karmamod(self, ctx, user : discord.Member = None):
+    async def karmamod(self, ctx, user : discord.Member):
         """Modère automatiquement un utilisateur en fonction de son Karma.
 
         1+ : Prison de 5 minutes
