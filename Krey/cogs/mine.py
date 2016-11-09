@@ -37,7 +37,7 @@ class Mine:
                            ["Plutonium", "µg de plutonium", 196, 6],
                            ["Europium", "µg d'europium", 232, 6],
                            ["Antimatière", "µg d'antimatière", 370, 7]]
-        self.mine_legend = [["Mitrhil", "ng de mithrhil", 410, 8],
+        self.mine_legend = [["Mithril", "ng de mithril", 410, 8],
                             ["Epice", "ng d'épice", 475, 8],
                             ["Orichalque", "ng d'orichalque", 534, 8],
                             ["Kryptonite", "ng de kryptonite", 592, 8],
@@ -161,7 +161,7 @@ class Mine:
 
     @mine.command(pass_context=True, no_pm=True)
     async def raffine(self, ctx, item : str, qual : int = 1):
-        """Permet de raffiner un minerai pour en augmenter (peut-^être) sa valeur.
+        """Permet de raffiner un minerai pour en augmenter (peut-être) sa valeur.
         Item = Groupe de minerai qui doit être raffiné
         Qual = Qualité visé parmis trois catégorie (1 = Moyen(28§/u), 2 = Bon(42§/u), 3 = Excellent(56§/u))
         Plus la qualité visée est haute moins il y a de chances que ça fonctionne et plus ça coute cher.
@@ -362,7 +362,7 @@ class Mine:
         msg += "*Antimatière*, 370§ l'unité\n"
         msg += "\n"
         msg += "**---- LEGENDAIRES ----**\n"
-        msg += "*Mitrhil*, 410§ l'unité\n"
+        msg += "*Mithril*, 410§ l'unité\n"
         msg += "*Epice*, 475§ l'unité\n"
         msg += "*Orichalque*, 534§ l'unité\n"
         msg += "*Kryptonite*, 592§ l'unité\n"
