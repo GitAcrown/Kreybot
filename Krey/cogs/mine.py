@@ -163,22 +163,22 @@ class Mine:
     async def raffine(self, ctx, item : str, qual : int = 1):
         """Permet de raffiner un minerai pour en augmenter (peut-être) sa valeur.
         Item = Groupe de minerai qui doit être raffiné
-        Qual = Qualité visé parmis trois catégorie (1 = Moyen(28§/u), 2 = Bon(42§/u), 3 = Excellent(56§/u))
+        Qual = Qualité visé parmis trois catégorie (1 = Moyen(30§/u), 2 = Bon(50§/u), 3 = Excellent(70§/u))
         Plus la qualité visée est haute moins il y a de chances que ça fonctionne et plus ça coute cher.
 
         ATTENTION : Cette commande raffine le groupe de minerai entier et pas seulement une unité.
         En cas de réussite, les minerais sont vendus automatiquement pour éviter l'encombrement de l'inventaire."""
         author = ctx.message.author
         if qual == 1:
-            p_u = 28
+            p_u = 30
             raf = "Moyen"
             await self.bot.say("**Qualité choisie :** *Moyen* (28§ par unité).")
         if qual == 2:
-            p_u = 42
+            p_u = 50
             raf = "Bon"
             await self.bot.say("**Qualité choisie :** *Bon* (42§ par unité).")
         if qual == 3:
-            p_u = 56
+            p_u = 70
             raf = "Excellent"
             await self.bot.say("**Qualité choisie :** *Excellent* (56§ par unité).")
         item = item.title()
@@ -191,7 +191,7 @@ class Mine:
                     prix = p_u * quant
                     if bank.can_spend(author, prix):
                         bank.withdraw_credits(author, prix)
-                        wd = random.randint(1, 7)
+                        wd = random.randint(1, 6)
                         time = qual * 2
                         await asyncio.sleep(0.5)
                         await self.bot.say("*Vous raffinez lentement votre **{}**...*".format(item))
@@ -207,11 +207,13 @@ class Mine:
                             vente = self.inv[author.id][item]["PUNITE"] * dispo
                             bank.deposit_credits(author, vente)
                             await self.bot.say("Vous venez de vendre {} **{}** [Raffinage {}]. Vous obtenez donc {}§".format(quant, item, raf, vente))
-                            self.inv[author.id][item]["QUANITE"] = 0
+                            self.inv[author.id][item]["QUANTITE"] = 0
                             self.inv[author.id][item]["PUNITE"] = before
                             fileIO("data/mine/inv.json", "save", self.inv)
                         else:
-                            await self.bot.say("C'est un échec ! Vos minerais vous sont donc rendus.")
+                            await self.bot.say("C'est un échec ! Vos minerais vous sont donc rendus mais vous en perdez un !")
+                            self.inv[author.id][item]["QUANTITE"] -= 1
+                            fileIO("data/mine/inv.json", "save", self.inv)
                     else:
                         await self.bot.say("Vous n'avez pas assez d'argent sur votre compte.")
                 else:
