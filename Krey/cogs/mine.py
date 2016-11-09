@@ -19,18 +19,32 @@ class Mine:
         self.sys = dataIO.load_json("data/mine/sys.json")
         self.inv = dataIO.load_json("data/mine/inv.json")
         self.mine_commun = [["Fer", "kg de fer", 18, 3],
+                            ["Charbon", "kg de charbon", 7, 2],
                             ["Sel", "kg de sel", 12, 3],
-                            ["Cuivre", "kg de cuivre", 22, 3]]
+                            ["Zinc", "kg de zinc", 19, 3],
+                            ["Cuivre", "kg de cuivre", 22, 3],
+                            ["Plomb", "kg de plomb", 25, 3]]
         self.mine_altern = [["Argent", "g d'argent", 34, 4],
                             ["Or", "g d'or", 48, 4],
-                            ["Platine", "g de platine", 60, 4]]
+                            ["Platine", "g de platine", 60, 4],
+                            ["Inox", "g d'inox", 40, 4],
+                            ["Aluminium", "g d'aluminium", 45, 4]]
         self.mine_rare = [["Rubis", "mg de rubis", 68, 5],
-                          ["Saphir", "mg de saphires", 78, 5],
+                          ["Saphir", "mg de saphirs", 78, 5],
+                          ["Iridium", "mg d'iridium", 102, 5],
                           ["Diamant", "mg de diamants", 90, 5]]
         self.mine_urare = [["Tritium", "µg de tritium", 140, 6],
                            ["Plutonium", "µg de plutonium", 196, 6],
-                           ["Antimatière", "µg d'antimatière", 450, 7]]
-
+                           ["Europium", "µg d'europium", 232, 6],
+                           ["Antimatière", "µg d'antimatière", 370, 7]]
+        self.mine_legend = [["Mitrhil", "ng de mithrhil", 410, 8],
+                            ["Epice", "ng d'épice", 475, 8],
+                            ["Orichalque", "ng d'orichalque", 534, 8],
+                            ["Kryptonite", "ng de kryptonite", 592, 8],
+                            ["Vibranium", "ng de vibranium", 620, 8],
+                            ["Devilium", "ng de devilium", 666, 9],
+                            ["Naquadah", "ng de naquadah", 714, 9]]
+    
     @commands.command(pass_context=True, hidden=True)
     async def mine_debug(self, ctx):
         """Debug du module Mine"""
@@ -119,6 +133,8 @@ class Mine:
         fileIO("data/mine/sys.json", "save", self.sys)
         await self.bot.say("Le compteur est reglé à {} pour cette session".format(val))
 
+# ------------ UTILISATEUR -------------------
+
     @commands.group(pass_context=True)
     async def mine(self, ctx):
         """Règle le module de minage."""
@@ -142,6 +158,68 @@ class Mine:
             await self.bot.say("Voilà ! Si vous voulez miner, vous pouvez dès à présent refaire la commande.")
         else:
             await self.bot.say("Vous êtes déjà inscrit !")
+
+    @mine.command(pass_context=True, no_pm=True)
+    async def raffine(self, ctx, item : str, qual : int = 1):
+        """Permet de raffiner un minerai pour en augmenter (peut-^être) sa valeur.
+        Item = Groupe de minerai qui doit être raffiné
+        Qual = Qualité visé parmis trois catégorie (1 = Moyen(28§/u), 2 = Bon(42§/u), 3 = Excellent(56§/u))
+        Plus la qualité visée est haute moins il y a de chances que ça fonctionne et plus ça coute cher.
+
+        ATTENTION : Cette commande raffine le groupe de minerai entier et pas seulement une unité.
+        En cas de réussite, les minerais sont vendus automatiquement pour éviter l'encombrement de l'inventaire."""
+        author = ctx.message.author
+        if qual == 1:
+            p_u = 28
+            raf = "Moyen"
+            await self.bot.say("**Qualité choisie :** *Moyen* (28§ par unité).")
+        if qual == 2:
+            p_u = 42
+            raf = "Bon"
+            await self.bot.say("**Qualité choisie :** *Bon* (42§ par unité).")
+        if qual == 3:
+            p_u = 56
+            raf = "Excellent"
+            await self.bot.say("**Qualité choisie :** *Excellent* (56§ par unité).")
+        item = item.title()
+        bank = self.bot.get_cog('Economy').bank
+        if author.id in self.inv:
+            if item in self.inv[author.id]:
+                before = self.inv[author.id][item]["PUNITE"]
+                if bank.account_exists(author):
+                    quant = self.inv[author.id][item]["QUANTITE"]
+                    prix = p_u * quant
+                    if bank.can_spend(author, prix):
+                        bank.withdraw_credits(author, prix)
+                        wd = random.randint(1, 7)
+                        time = qual * 2
+                        await asyncio.sleep(0.5)
+                        await self.bot.say("*Vous raffinez lentement votre **{}**...*".format(item))
+                        await asyncio.sleep(time)
+                        if wd > qual:
+                            bonus = self.inv[author.id][item]["PUNITE"] / 2
+                            bonus = int(bonus * qual)
+                            self.inv[author.id][item]["PUNITE"] = self.inv[author.id][item]["PUNITE"] + bonus
+                            fileIO("data/mine/inv.json", "save", self.inv)
+                            await self.bot.say("**C'est une réussite !** La valeur de {} est augmenté de {}§ ! *Vos minerais raffinés vont être vendus automatiquement dans quelques secondes...*".format(item, bonus))
+                            await asyncio.sleep(2)
+                            dispo = self.inv[author.id][item]["QUANTITE"]
+                            vente = self.inv[author.id][item]["PUNITE"] * dispo
+                            bank.deposit_credits(author, vente)
+                            await self.bot.say("Vous venez de vendre {} **{}** [Raffinage {}]. Vous obtenez donc {}§".format(quant, item, raf, vente))
+                            self.inv[author.id][item]["QUANITE"] = 0
+                            self.inv[author.id][item]["PUNITE"] = before
+                            fileIO("data/mine/inv.json", "save", self.inv)
+                        else:
+                            await self.bot.say("C'est un échec ! Vos minerais vous sont donc rendus.")
+                    else:
+                        await self.bot.say("Vous n'avez pas assez d'argent sur votre compte.")
+                else:
+                    await self.bot.say("Vous n'avez pas de compte bancaire sur ce serveur.")
+            else:
+                await self.bot.say("Vous ne possédez pas cet item.")
+        else:
+            await self.bot.say("Vous n'êtes pas inscrit dans cette extension.")
 
     @mine.command(pass_context=True, no_pm=True)
     async def pioche(self, ctx):
@@ -257,12 +335,17 @@ class Mine:
         """Affiche des informations sur les minerais disponibles."""
         msg = "__**Minerais disponibles :**__\n" + "\n"
         msg += "**------ COMMUNS ------**\n"
+        msg += "*Charbon*, 7§ l'unité\n"
         msg += "*Sel*, 12§ l'unité\n"
         msg += "*Fer*, 18§ l'unité\n"
+        msg += "*Zinc*, 19§ l'unité\n"
         msg += "*Cuivre*, 22§ l'unité\n"
+        msg += "*Plomb*, 25§ l'unité\n"
         msg += "\n"
         msg += "**---- PEU COMMUNS ----**\n"
         msg += "*Argent*, 34§ l'unité\n"
+        msg += "*Inox*, 40§ l'unité\n"
+        msg += "*Aluminium*, 45§ l'unité\n"
         msg += "*Or*, 48§ l'unité\n"
         msg += "*Platine*, 60§ l'unité\n"
         msg += "\n"
@@ -270,13 +353,25 @@ class Mine:
         msg += "*Rubis*, 68§ l'unité\n"
         msg += "*Saphire*, 78§ l'unité\n"
         msg += "*Diamant*, 90§ l'unité\n"
+        msg += "*Iridium*, 120§ l'unité\n"
         msg += "\n"
         msg += "**---- TRES RARES ----**\n"
         msg += "*Tritium*, 140§ l'unité\n"
         msg += "*Plutonium*, 196§ l'unité\n"
-        msg += "*Antimatière*, 450§ l'unité\n"
+        msg += "*Europium*, 232§ l'unité\n"
+        msg += "*Antimatière*, 370§ l'unité\n"
         msg += "\n"
-        msg += "*Il y a environ :*\n- 50% de chance de tomber sur un commun\n- 30% de chance pour peu commun\n- 15% de chance pour rare\n- 5% de chance pour très rare"
+        msg += "**---- LEGENDAIRES ----**\n"
+        msg += "*Mitrhil*, 410§ l'unité\n"
+        msg += "*Epice*, 475§ l'unité\n"
+        msg += "*Orichalque*, 534§ l'unité\n"
+        msg += "*Kryptonite*, 592§ l'unité\n"
+        msg += "*Vibranium*, 620§ l'unité\n"
+        msg += "*Devilium*, 666§ l'unité\n"
+        msg += "*Naquadah*, 714§ l'unité\n"
+        msg += "\n"
+        msg += "**Il y a environ:**\n- 45% de chance de tomber sur un commun\n- 25% de chance pour peu commun\n- 15% de chance pour rare\n- 10% de chance pour très rare\n- 5% de chance pour Légendaire"
+        msg += "\nLes temps de minage varient en fonction de la rareté du minerai extrait. Plus ça met du temps, plus vous êtes chanceux !"
         await self.bot.whisper(msg)
         
     def reset(self):
@@ -292,31 +387,43 @@ class Mine:
 
     def gen_mine(self):
         aleat = random.randint(1, 100)
-        if aleat < 50:
+        if aleat < 45:
             choix = random.choice(self.mine_commun)
             return choix
-        elif aleat >= 50 and aleat < 80:
+        elif aleat >= 45 and aleat < 70:
             choix = random.choice(self.mine_altern)
             return choix
-        elif aleat >= 80 and aleat < 95:
+        elif aleat >= 70 and aleat < 85:
             choix = random.choice(self.mine_rare)
             return choix
-        else:
+        elif aleat >= 85 and aleat < 93:
             choix = random.choice(self.mine_urare)
             return choix
+        else:
+            choix = random.choice(self.mine_legend)
 
     async def counter(self, message):
         if self.sys["MINEUR"] is None: #Si il n'y a pas de minage
             self.sys["COMPTEUR"] += 1 #On ajoute 1 au compteur
             fileIO("data/mine/sys.json", "save", self.sys)
             if self.sys["COMPTEUR"] == self.sys["LIMITE"]: #Si le compteur atteint la limite
-                minechan = random.choice(self.sys["CHANNELS"]) #On choisi un channel au hasard
-                self.sys["MINECHAN"] = minechan #On enregistre l'ID du channel
-                channel = self.bot.get_channel(minechan) #On obtient le channel lié à l'ID 
-                minerai = self.gen_mine() #On génère un minerai
-                self.sys["SPAWNED"] = minerai #On met le minerai dans la mémoire
-                await self.bot.send_message(channel, "-------------------------------------\n**{}** vient d'apparaitre ! Faîtes [p]mine pioche pour miner !\n-------------------------------------".format(minerai[0])) #On fait spawner le minerai généré (en msg)
-                fileIO("data/mine/sys.json", "save", self.sys)
+                randomize = random.randint(1, 10)
+                if randomize != 1:
+                    minechan = random.choice(self.sys["CHANNELS"]) #On choisi un channel au hasard
+                    self.sys["MINECHAN"] = minechan #On enregistre l'ID du channel
+                    channel = self.bot.get_channel(minechan) #On obtient le channel lié à l'ID 
+                    minerai = self.gen_mine() #On génère un minerai
+                    self.sys["SPAWNED"] = minerai #On met le minerai dans la mémoire
+                    await self.bot.send_message(channel, "-------------------------------------\n**{}** vient d'apparaitre ! Faîtes [p]mine pioche pour miner !\n-------------------------------------".format(minerai[0])) #On fait spawner le minerai généré (en msg)
+                    fileIO("data/mine/sys.json", "save", self.sys)
+                else:
+                    minechan = random.choice(self.sys["CHANNELS"]) #On choisi un channel au hasard
+                    self.sys["MINECHAN"] = minechan #On enregistre l'ID du channel
+                    channel = self.bot.get_channel(minechan) #On obtient le channel lié à l'ID
+                    minerai = self.gen_mine() #On génère un minerai
+                    self.sys["SPAWNED"] = minerai #On met le minerai dans la mémoire
+                    await self.bot.send_message(channel, "-------------------------------------\nUn **Minerai indétectable** vient d'apparaitre. Faîtes [p]mine pioche pour miner ce mystère !\n-------------------------------------")
+                    fileIO("data/mine/sys.json", "save", self.sys)
             else:
                 pass
         else:

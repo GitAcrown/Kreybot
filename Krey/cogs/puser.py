@@ -84,7 +84,7 @@ class Puser:
         msg += "**Karma** *{}*\n".format(karma)
         msg += "**Dernier msg** *{}* [{}]\n".format(message, mtemps)
         msg += "**Nb de msg** *{}*".format(nombre)
-        await self.bot.whisper(msg)
+        await self.bot.whisper(msg) 
 
     @commands.command(aliases = ['prm'], pass_context=True, no_pm=True)
     @checks.mod_or_permissions(ban_members=True)
@@ -280,10 +280,14 @@ class Puser:
         """Permet d'éditer les points de Karma d'un utilisateur.
 
         Le minimum est de 0 et le maximum de 10."""
-        if val >= 0 and val <= 10:
-            self.prfl[user.id]["KARMA"] = val
-            fileIO("data/puser/prfl.json", "save", self.prfl)
-            await self.bot.say("Le karma de **{}** est reglé à *{}*".format(user.name, val))
+        val = int(val)
+        if val >= 0:
+            if val <= 10:
+                self.prfl[user.id]["KARMA"] = val
+                fileIO("data/puser/prfl.json", "save", self.prfl)
+                await self.bot.say("Le karma de **{}** est reglé à *{}*".format(user.name, val))
+            else:
+                await self.bot.whisper("La valeur doit être entre 0 et 10")
         else:
             await self.bot.whisper("La valeur doit être entre 0 et 10")
 
