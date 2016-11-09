@@ -103,7 +103,7 @@ class Jail:
             minutes = temps * 60 #On veut un temps en minutes
             if prol not in [r.name for r in user.roles]:
                 if self.prfl[user.id]["KARMA"] > 0:
-                    await self.bot.whisper("Cet utilisateur possède déjà {}pts de Karma.".format(self.prfl[user.id]["Karma"]))
+                    await self.bot.whisper("Cet utilisateur possède déjà {}pts de Karma.".format(self.prfl[user.id]["KARMA"]))
                 await self.bot.add_roles(user, r)
                 if self.prfl[user.id]["KARMA"] < 10:
                     self.prfl[user.id]["KARMA"] += 1
