@@ -101,6 +101,39 @@ class Mod:
         except Exception as e:
             print(e)
 
+    @commands.command(no_pm=True, pass_context=True)
+    @checks.admin_or_permissions(ban_members=True)
+    async def temp(self, ctx, user: discord.Member, heures: int=24):
+        """Ban un utilisateur temporairement pendant un certain nombre d'heures.
+        Supprime aussi les 3 derniers jours de message.
+
+        Par défaut 1 jour (24h)
+        Rajoute 3 au karma."""
+        days = 3
+        author = ctx.message.author
+        minutes = 60 * heures
+        secondes = 60 * heures
+        if jours < 1:
+            await self.bot.say("Il ne peut pas avoir un nombre nul de jours de ban.")
+            return
+        try:
+            await self.bot.ban(user, days)
+            logger.info("{}({}) a ban tempo {}({}), deleting {} days worth of messages".format(
+                author.name, author.id, user.name, user.id, str(days)))
+            if self.prfl[user.id]["KARMA"] < 8:
+                self.prfl[user.id]["KARMA"] += 3
+            elif self.prfl[user.id]["KARMA"] > 7:
+                self.prfl[user.id]["KARMA"] = 10
+            fileIO("data/puser/prfl.json", "save", self.prfl)
+            await self.bot.say("Ban tempo fait. (+3 Karma)")
+            await asyncio.sleep(secondes)
+            await self.bot.unban(server, user)
+            await self.bot.say("**{}** à été débanni (Ban tempo terminé).".format(user.name))
+        except discord.errors.Forbidden:
+            await self.bot.say("Je ne suis pas autorisé à le faire.")
+        except Exception as e:
+            print(e)
+
     @commands.command(aliases = ["ntr"], no_pm=True, pass_context=True)
     @checks.admin_or_permissions(ban_members=True)
     async def neutral(self, ctx, user: discord.Member):
@@ -688,8 +721,6 @@ def check_files():
     if not os.path.isfile("data/mod/past_nicknames.json"):
         print("Creating empty past_nicknames.json...")
         fileIO("data/mod/past_nicknames.json", "save", {})
-
-
 
 def setup(bot):
     global logger
