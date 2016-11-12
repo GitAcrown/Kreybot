@@ -112,8 +112,8 @@ class Mod:
         days = 3
         author = ctx.message.author
         minutes = 60 * heures
-        secondes = 60 * heures
-        if jours < 1:
+        secondes = 60 * minutes
+        if heures < 1:
             await self.bot.say("Il ne peut pas avoir un nombre nul de jours de ban.")
             return
         try:
