@@ -172,15 +172,15 @@ class Mine:
         if qual == 1:
             p_u = 30
             raf = "Moyen"
-            await self.bot.say("**Qualité choisie :** *Moyen* (28§ par unité).")
+            await self.bot.say("**Qualité choisie :** *Moyen* (30§ par unité).")
         if qual == 2:
             p_u = 50
             raf = "Bon"
-            await self.bot.say("**Qualité choisie :** *Bon* (42§ par unité).")
+            await self.bot.say("**Qualité choisie :** *Bon* (50§ par unité).")
         if qual == 3:
             p_u = 70
             raf = "Excellent"
-            await self.bot.say("**Qualité choisie :** *Excellent* (56§ par unité).")
+            await self.bot.say("**Qualité choisie :** *Excellent* (70§ par unité).")
         item = item.title()
         bank = self.bot.get_cog('Economy').bank
         if author.id in self.inv:
