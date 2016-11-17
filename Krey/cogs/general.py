@@ -17,12 +17,14 @@ from cleverbot import Cleverbot
 settings = {"POLL_DURATION" : 60}
 cb = Cleverbot()
 headers = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36"
+default = {"CHANNEL" : "", "CB_AUTO" : False, "ACTIVE" : False, "BOT_ID" : ""}
 
 class General:
     """General commands."""
 
     def __init__(self, bot):
         self.bot = bot
+        self.sett = dataIO.load_json("data/gen/sett.json")
         self.stopwatches = {}
         self.ball = ["A ce que je vois, oui.", "C'est certain.", "J'hésite.", "Plutôt oui.", "Il semble que oui.",
                      "Les esprits penchent pour un oui.", "Sans aucun doute.", "Oui.", "Oui - C'est sûr.", "Tu peux compter dessus.", "Je ne sais pas.",
@@ -34,6 +36,14 @@ class General:
     async def ping(self):
         """Pong."""
         await self.bot.say("Pong.")
+
+    @commands.command(hidden=True, pass_context=True)
+    async def msginfo(self, ctx):
+        """Infos de message"""
+        message = ctx.message
+        await self.bot.say("Contenu :" + message.content)
+        await self.bot.say("Timestamp : {:%c}".format(ctx.message.timestamp))
+        await self.bot.say("Auteur :" + message.author)
 
     @commands.command(pass_context=True)
     async def make(self, ctx, *objet):
@@ -175,6 +185,84 @@ class General:
             rep = rep.replace("Ã§","ç")
         await self.bot.send_typing(ctx.message.channel)
         await self.bot.say(rep)
+
+    @commands.command(aliases=["at"], pass_context=True)
+    async def autotalk(self, ctx):
+        """Permet de lancer une session automatique de 't'."""
+        channel = ctx.message.channel
+        if self.sett["ACTIVE"] == False:
+            self.sett["ACTIVE"] = True
+            self.sett["CHANNEL"] = channel.id
+            await self.bot.say("Passage en mode automatique en activation...")
+            fileIO("data/gen/sett.json", "save", self.sett)
+        else:
+            await self.bot.say("Déjà enregistré.")
+
+    @commands.command(hidden=True, pass_context=True)
+    async def resettalk(self, ctx):
+        """Permet de reset le talk"""
+        self.sett["ACTIVE"] = False
+        self.sett["CHANNEL"] = ""
+        self.sett["CB_AUTO"] = False
+        self.sett["BOT_ID"] = ""
+        await self.bot.say("Reset effectué avec succès.")
+        fileIO("data/gen/sett.json", "save", self.sett)
+
+    @commands.command(hidden=True, pass_context=True)
+    async def talk_debug(self, ctx):
+        """Debug du talk."""
+        msg = "Actif: {}\n".format(str(self.sett["ACTIVE"]))
+        msg += "Channel: {}\n".format(str(self.sett["CHANNEL"]))
+        msg += "Auto activé: {}\n".format(str(self.sett["CB_AUTO"]))
+        msg += "ID Bot: {}\n".format(str(self.sett["BOT_ID"]))
+        await self.bot.say(msg)
+
+    async def cbsess(self, message):
+        channel = message.channel
+        author = message.author
+        if author.id != self.sett["BOT_ID"]:
+            if self.sett["ACTIVE"] is True:
+                if channel.id == self.sett["CHANNEL"]:
+                    if self.sett["CB_AUTO"] is False:
+                        self.sett["CB_AUTO"] = True
+                        fileIO("data/gen/sett.json", "save", self.sett)
+                        mess = await self.bot.send_message(channel, "**Passage en mode Automatique sur ce channel.**\n*Dîtes 'FTG' pour repasser en automatique.*")
+                        self.sett["BOT_ID"] = mess.author.id
+                        fileIO("data/gen/sett.json", "save", self.sett)
+                    else:
+                        msg = message.content
+                        if msg != "**Passage en mode Automatique sur ce channel.**\n*Dîtes 'FTG' pour repasser en automatique.*":
+                            if 'FTG' not in msg:
+                                rep = str(cb.ask(msg))
+                                if "Ãª" in rep:
+                                    rep = rep.replace("Ãª","ê")
+                                if "Ã©" in rep:
+                                    rep = rep.replace("Ã©","é")
+                                if "Ã»" in rep:
+                                    rep = rep.replace("Ã»","û")
+                                if "Ã«" in rep:
+                                    rep = rep.replace("Ã«","ë")
+                                if "Ã¨" in rep:
+                                    rep = rep.replace("Ã¨","è")
+                                if "Ã§" in rep:
+                                    rep = rep.replace("Ã§","ç")
+                                await asyncio.sleep(0.50)
+                                await self.bot.send_typing(channel)
+                                await self.bot.send_message(channel, rep)
+                            else:
+                                self.sett["ACTIVE"] = False
+                                self.sett["CHANNEL"] = ""
+                                self.sett["CB_AUTO"] = False
+                                fileIO("data/gen/sett.json", "save", self.sett)
+                                await self.bot.send_message(channel, "**Passage en mode Manuel...**")
+                        else:
+                            pass
+                else:
+                    pass
+            else:
+                pass
+        else:
+            pass
 
     @commands.command(aliases=["sw"], pass_context=True)
     async def stopwatch(self, ctx):
@@ -413,7 +501,21 @@ class NewPoll():
         except ValueError:
             pass
 
+def check_folders():
+    if not os.path.exists("data/gen"):
+        print("Creation du fichier General...")
+        os.makedirs("data/gen")
+
+def check_files():
+    
+    if not os.path.isfile("data/gen/sett.json"):
+        print("Creation du fichier de réglages General...")
+        fileIO("data/gen/sett.json", "save", default)
+
 def setup(bot):
+    check_folders()
+    check_files()
     n = General(bot)
     bot.add_listener(n.check_poll_votes, "on_message")
+    bot.add_listener(n.cbsess, "on_message")
     bot.add_cog(n)
