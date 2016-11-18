@@ -12,6 +12,7 @@ default_settings = {
     "leave_message": "{0.mention} has left the server.",
     "ban_message": "{0.mention} has been banned.",
     "unban_message": "{0.mention} has been unbanned.",
+    "join_mp": "Salut {0.mention}, bienvenue sur TdK !",
     "on": False,
     "channel": None
 }
@@ -43,7 +44,7 @@ class Tools:
         """Envoie un MP à toutes les personnes possédant un certain rôle.
         Permet certaines customisations:
         {0} est le membre recevant le message.
-        {1} est le rôle au travers duquel il sont MP.
+        {1} est le rôle au travers duquel ils sont MP.
         {2} est la personne envoyant le message.
         Exemple: Message provenant de {2}: Salut {0} du rôle {1} ! ..."""
         server = ctx.message.server
@@ -77,6 +78,19 @@ class Tools:
         await self.bot.type()
         server = ctx.message.server
         self.settings[server.id]["join_message"] = format_str
+        dataIO.save_json(self.settings_path, self.settings)
+        await self.bot.say("Message réglé.")
+
+    @_membershipset.command(pass_context=True, no_pm=True, name="mp")
+    async def _mp(self, ctx: commands.Context, *,
+                    format_str: str):
+        """Change le MP d'arrivée du serveur.
+        {0} est le membre
+        {1} est le serveur
+        """
+        await self.bot.type()
+        server = ctx.message.server
+        self.settings[server.id]["join_mp"] = format_str
         dataIO.save_json(self.settings_path, self.settings)
         await self.bot.say("Message réglé.")
 
@@ -178,6 +192,9 @@ class Tools:
                                         self.settings[server.id][
                                             "join_message"]
                                         .format(member, server))
+            await asyncio.sleep(0.25)
+            await self.bot.send_message(member, self.settings[server.id][
+                                            "join_mp"])
         else:
             print("Je n'ai pas eu les autorisations pour envoyer un message. L'utilisateur était {}.".format(member.name))
 
